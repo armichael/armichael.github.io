@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	 <meta name="description" content="Digital art and mathematics">
+      <meta name="keywords" content="digital art, math, processing, complexity">
+      <meta name="author" content="Andrew Michael">
+	<link rel="shortcut icon" href="../favicon.ico" />
+        <title>Spielraum - SICP Notes</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link href="http://fonts.googleapis.com/css?family=Noto+Sans:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=Merriweather" rel="stylesheet" type="text/css">
+<script src="http://use.edgefonts.net/source-code-pro.js"></script>
+	<!--[if lt IE 9]>
+	<script src="http://htmlshiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body>
+        <header><a id="top">
+            <div id="logo">
+                <a href="../">Spielraum</a>
+            </div>
+            <nav>
+                <a href="../about.html">about</a>
+                <a href="../contact.html">contact</a>
+                <a href="../archive.html">archive</a>
+            </nav>
+        </header>
+
+        <article>
+            <h1>SICP Notes</h1>
+
+            <div id="by-line">
+  <span class="date">
+    Posted on March 27, 2015
+    
+        by Andrew Michael
+    </span>
+<span class="info">
+  
+  tags: <a href="../tags/compsci.html">compsci</a>, <a href="../tags/math.html">math</a>, <a href="../tags/notes.html">notes</a>
+  
+</span>
+</div>
+
+  <hr />
+<ul>
+<li>The source for my notes is available <a href="http://github.com/armichael/SICP.git">here</a>. This was translated directly from org format to markdown, then to HTML, all through <a href="http://johnmacfarlane.net/pandoc/">pandoc</a>.</li>
+</ul>
+<div class="toc">
+<p>Table of Contents</p>
+<ol style="list-style-type: decimal">
+<li><a href="#procedures-and-processes">Recursion and Iteration</a></li>
+<li><a href="#the-ackermann-function">Ackermann’s function</a></li>
+<li><a href="#fibonacci-numbers-and-tree-recursion">Tree Recursion</a></li>
+<li><a href="#exercise-1.12">Pascal’s Triangle</a></li>
+<li><a href="#exercise-1.13">The Binet formula</a></li>
+<li><a href="#orders-of-growth">Orders of Growth</a></li>
+</ol>
+</div>
+<p>Notes on the classic (infamous?) computer science book <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html">Structure and Interpretation of Computer Programs</a> by Hal Abelson and Gerald Sussman.</p>
+<h3 id="about">About</h3>
+<p>Code is written in Guile Scheme, using Emacs Org-mode’s <a href="http://orgmode.org/worg/org-contrib/babel/">Babel</a> feature for literate programming. This allows you to weave blocks of code from any number of source languages into organized, foldable notes. The code can be evaluated, fed input, etc. Sufficiently detailing the power of <a href="http://orgmode.org">Org-mode</a> itself would warrant a separate full-length article.</p>
+<p>I’ve read a similar text called <a href="https://gustavus.edu/+max/concrete-abstractions.html">Concrete Abstractions</a>. CA covers a lot of the same material as SICP’s first few sections in great detail, so my notes over those sections will be limited to the odd exercise or so.</p>
+<h3 id="links">Links</h3>
+<p>If you’re interested in reading SICP, you can’t go wrong with the <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html">original text</a>. There’s also a lovely modernization effort available in EPUB and PDF format at https://github.com/sarabander/sicp.</p>
+<hr />
+<h1 id="building-abstractions-with-procedures">Building Abstractions with Procedures</h1>
+<h2 id="elements-of-programming">1.1: Elements of Programming</h2>
+<h3 id="exercise-1.8---approximating-cubic-roots">Exercise 1.8 - Approximating cubic roots</h3>
+<p><span class="math">\[\frac{\frac{x}{y^3}+2y}{3}\]</span></p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-session="*guile*"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(cbrt x)
+    (cbrt-iter <span class="fl">1.0</span> x))
+  (<span class="kw">define</span><span class="fu"> </span>(cbrt-iter guess x)
+    (<span class="kw">if</span> (good-enough? guess x)
+        guess
+        (cbrt-iter (improve guess x) x)))
+  (<span class="kw">define</span><span class="fu"> </span>(improve guess x)
+    (<span class="kw">/</span> (<span class="kw">+</span> (<span class="kw">/</span> x (* guess guess)) (* <span class="dv">2</span> guess)) <span class="dv">3</span>))
+  (<span class="kw">define</span><span class="fu"> </span>(good-enough? guess x)
+    (<span class="kw">&lt;</span> (<span class="kw">abs</span> (<span class="kw">-</span> (<span class="kw">expt</span> guess <span class="dv">3</span>) x)) <span class="fl">0.001</span>))
+
+  (cbrt <span class="dv">39837</span>)</code></pre>
+<h3 id="lexical-scoping---internal-definitions">Lexical Scoping - Internal Definitions</h3>
+<p>The above exercise, but organized under one definition:</p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-session="*guile*"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(cbrt x)  
+    (<span class="kw">define</span><span class="fu"> </span>(cbrt-iter guess x)
+      (<span class="kw">let</span> ((improve (<span class="kw">lambda</span> (guess x)
+                       (<span class="kw">/</span> (<span class="kw">+</span> (<span class="kw">/</span> x (<span class="kw">expt</span> guess <span class="dv">2</span>)) (* <span class="dv">2</span> guess)) <span class="dv">3</span>)))
+            (good-enough? (<span class="kw">lambda</span> (guess x)
+                            (<span class="kw">&lt;</span> (<span class="kw">abs</span> (<span class="kw">-</span> (<span class="kw">expt</span> guess <span class="dv">3</span>) x)) <span class="fl">0.001</span>))))
+        (<span class="kw">if</span> (good-enough? guess x)
+            guess
+            (cbrt-iter (improve guess x) x))))
+    (cbrt-iter <span class="fl">1.0</span> x))
+
+    (cbrt <span class="dv">39837</span>)</code></pre>
+<h2 id="procedures-and-processes">1.2: Procedures and Processes</h2>
+<p>Procedural abstraction is the first essential CS idea introduced by this book. When people say that /“computer science isn’t necessarily about computers or science”/, this is perhaps what they mean. Computer science is about <em>computation</em>, which can occur in any substrate (material, biological or otherwise) deemed sufficient to carry out procedural manipulation of information.</p>
+<h3 id="recursion-and-iteration">Recursion and Iteration</h3>
+<p>This chapter examines linear recursion and iteration, as well as the term <em>procedure</em> and what it means for local and global transformations. Specifically, recursive processes and linear processes have different “shapes”. They relate to the elements of computation differently in how the procedure carries out through time and (memory) space.</p>
+<p>Recursive processes defer a chain of operations and then rapidly contract. A function that calls itself as a parameter in an operation generates a recursive process.</p>
+<p>Example: for computing a factorial (<span class="math">\(n!\)</span>), the number of steps would grow linearly with <span class="math">\(n\)</span>.</p>
+<p>An iterative process would not “contract” in this manner– it simply keeps track of a fixed number of variable values and then re-iterates, generating a number of steps in finite-memory in which the variables are updated according to a fixed rule. An iterative process may call itself as an operation to generate a new state.</p>
+<h4 id="recursive-process-vs-recursive-procedure">Recursive Process vs Recursive Procedure</h4>
+<p>A function defined in terms of itself is not necessarily recursive. It could be iterative as well. The difference is whether the function calls itself as a parameter in another expression (recursive) or calls itself just with adjustments to variable values (iterative). This is all illustrated in the code block below. Ultimately, a recursive process has to negotiate an increasing amount of information (steps <em>and</em> memory grow proportional to the input) whereas an interative process captures the state all at once in each step and starts fresh. The information remains fixed, only the number of steps remain proportional to input.</p>
+<p>In other words, there is a difference between a recursive <em>procedure</em> and a recursive <em>process</em> (SICP, p.45). A procedure being recursive merely refers to the fact of its syntactical arrangement– it is defined in terms of itself. Whereas a <em>process</em> being recursive refers to its behavior as it evolves.</p>
+<p>An example:</p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-results="no"><code class="sourceCode scheme">   <span class="co">;; a recursive factorial function</span>
+    (<span class="kw">define</span><span class="fu"> </span>(fact-r n)
+      (<span class="kw">if</span> (<span class="kw">=</span> n <span class="dv">0</span>)
+          <span class="dv">1</span>
+          (* n (fact-r (<span class="kw">-</span> n <span class="dv">1</span>)))))
+
+(fact-r <span class="dv">5</span>)
+(* <span class="dv">5</span> (fact-r <span class="dv">4</span>))
+(* <span class="dv">5</span> (* <span class="dv">4</span> (fact-r <span class="dv">3</span>)))
+(* <span class="dv">5</span>( * <span class="dv">4</span> (* <span class="dv">3</span> (fact-r <span class="dv">2</span>))))
+(* <span class="dv">5</span> (* <span class="dv">4</span> (* <span class="dv">3</span> (* <span class="dv">2</span> (fact-r <span class="dv">1</span>)))))
+(* <span class="dv">5</span> (* <span class="dv">4</span> (* <span class="dv">3</span> (* <span class="dv">2</span> (* <span class="dv">1</span> (fact-r <span class="dv">0</span>))))))
+(* <span class="dv">5</span> (* <span class="dv">4</span> (* <span class="dv">3</span> (* <span class="dv">2</span> (* <span class="dv">1</span> <span class="dv">1</span>)))))
+(* <span class="dv">5</span> (* <span class="dv">4</span> (* <span class="dv">3</span> (* <span class="dv">2</span> <span class="dv">1</span>))))
+(* <span class="dv">5</span> (* <span class="dv">4</span> (* <span class="dv">3</span> <span class="dv">2</span>)))
+(* <span class="dv">5</span> (* <span class="dv">4</span> <span class="dv">6</span>))
+(* <span class="dv">5</span> <span class="dv">24</span>) <span class="co">;; -&gt; 120</span>
+
+    <span class="co">;; an iterative factorial function</span>
+    (<span class="kw">define</span><span class="fu"> </span>(fact-i n)
+      (<span class="kw">letrec</span> ((iter
+             (<span class="kw">lambda</span> (n product)
+               (<span class="kw">if</span> (<span class="kw">=</span> <span class="dv">0</span> n)
+                   product
+                   (iter (<span class="kw">-</span> n <span class="dv">1</span>) (* product n))))))
+        (iter n <span class="dv">1</span>)))
+
+(fact-i <span class="dv">5</span>) <span class="co">;; (iter 5 1)</span>
+   (iter <span class="dv">5</span> <span class="dv">1</span>)
+   (iter <span class="dv">4</span> <span class="dv">5</span>)
+   (iter <span class="dv">3</span> <span class="dv">20</span>)
+   (iter <span class="dv">2</span> <span class="dv">60</span>)
+   (iter <span class="dv">1</span> <span class="dv">120</span>)
+   (iter <span class="dv">0</span> <span class="dv">120</span>) <span class="co">;; -&gt; 120</span></code></pre>
+<p><code>letrec</code> was not introduced at this point in the book. I used <code>letrec</code> in place of a “helper” iteration function.</p>
+<h5 id="an-aside-on-binding-constructs">An aside on binding constructs:</h5>
+<dl>
+<dt>binding</dt>
+<dd>binding is the relationship between the name of something and its location in memory.
+</dd>
+<dt><code>let</code></dt>
+<dd>a derived form of <code>lambda</code>. <code>let</code> directly assigns an identifier to the result of an expression; <code>lambda</code> is passed identifiers. These are equivalent:
+</dd>
+</dl>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-results="no"><code class="sourceCode scheme">  ((<span class="kw">lambda</span> (param1 param2 ... ) body) var1 var2 ... )
+  (<span class="kw">let</span> ((param1 var1) (param2 var2) ... ) body)</code></pre>
+<dl>
+<dt><code>let*</code></dt>
+<dd>evaluates all declared bindings sequentially, that is, with respect to those that were declared before it. Normal <code>let</code> binds ids in parrallel.
+</dd>
+<dt><code>letrec</code></dt>
+<dd>allows the binding of recursive functions. See: <a href="http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html" class="uri">http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html</a>
+</dd>
+</dl>
+<p>As an aside, proper dialects of Scheme are <em>tail-recursive</em>– that is, a compiler trick allows for computationally cheap recursive function calls. This is different from many imperative programming languages in which iteration is almost always preffered to recursion.</p>
+<p>Some Schemes feature a useful macro called “named let” that mirrors particular uses of <code>letrec</code>.</p>
+<h4 id="the-ackermann-function">The Ackermann function</h4>
+<p>This exercise happens to be the one that discourages a lot of people from continuing on. It can be maddening if you attempt working it out on paper for too long. The Ackermann function is defined as such:</p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(A x y)
+    (<span class="kw">cond</span> ((<span class="kw">=</span> y <span class="dv">0</span>) <span class="dv">0</span>)
+          ((<span class="kw">=</span> x <span class="dv">0</span>) (* <span class="dv">2</span> y))
+          ((<span class="kw">=</span> y <span class="dv">1</span>) <span class="dv">2</span>)
+          (<span class="kw">else</span> (A (<span class="kw">-</span> x <span class="dv">1</span>) (A x (<span class="kw">-</span> y <span class="dv">1</span>))))))
+(A <span class="dv">2</span> <span class="dv">4</span>)</code></pre>
+<p>Mathematically it can be represented as</p>
+<p><span class="math">\[ A(n) = \begin{cases} 0 &amp;\mbox{if } y = 0 \\
+                       2y &amp; \mbox{if } x = 0 \\
+                       2 &amp; \mbox{if } y = 1 \\
+    A((x-1),(A(x,y-1))) &amp; \mbox{otherwise } \end{cases}\]</span></p>
+<p>And as with any problem, imagine first the most simple cases, taking 0 or 1 for the variables. You see that it ends without recurse if both of the variables are less than 2.</p>
+<p>Now let’s take 1 for x and 2 for y. Here’s an execution tree:</p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-results="no"><code class="sourceCode scheme">  (A <span class="dv">1</span> <span class="dv">2</span>)
+  (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">1</span>))
+  (A <span class="dv">0</span> <span class="dv">2</span>)
+  (* <span class="dv">2</span> <span class="dv">2</span>)</code></pre>
+<p>So <span class="math">\(A(1,2)=4\)</span>.</p>
+<p>Let’s try 2 and 2.</p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-results="no"><code class="sourceCode scheme">  (A <span class="dv">2</span> <span class="dv">2</span>)
+  (A <span class="dv">1</span> (A <span class="dv">2</span> <span class="dv">1</span>))
+  (A <span class="dv">1</span> <span class="dv">2</span>)
+  ...
+  (* <span class="dv">2</span> <span class="dv">2</span>)</code></pre>
+<p>Also <span class="math">\(4\)</span>.</p>
+<p>Let’s try 2 and 3.</p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-results="no"><code class="sourceCode scheme">  (A <span class="dv">2</span> <span class="dv">3</span>)
+  (A <span class="dv">1</span> (A <span class="dv">2</span> <span class="dv">2</span>))
+  (A <span class="dv">1</span> (A <span class="dv">1</span> (A <span class="dv">2</span> <span class="dv">1</span>)))
+  (A <span class="dv">1</span> (A <span class="dv">1</span> <span class="dv">2</span>))
+  (A <span class="dv">1</span> <span class="dv">4</span>) <span class="co">;; we know (A 1 2) -&gt; 4</span>
+  (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">3</span>)) <span class="co">;; here's where it gets interesting</span>
+  (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">2</span>)))
+  (A <span class="dv">0</span> (A <span class="dv">0</span> <span class="dv">4</span>))
+  (A <span class="dv">0</span> <span class="dv">8</span>)
+  (* <span class="dv">2</span> <span class="dv">8</span>) <span class="co">;; -&gt; 16</span></code></pre>
+<p><span class="math">\(A(2,3) = 16\)</span></p>
+<p>So the process appears to be exponential. That’s not yet enough to scare us: 16 is a small number.</p>
+<p>But that’s where many an unwitting soul has been lost– try to evaluate <code>(A 2 3)</code> on paper with pencil.</p>
+<p>It turns out to evaluate to 65536.</p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-results="no"><code class="sourceCode scheme"> (A <span class="dv">2</span> <span class="dv">4</span>)
+ (A <span class="dv">1</span> (A <span class="dv">2</span> <span class="dv">3</span>)
+ (A <span class="dv">1</span> (A <span class="dv">1</span> (A <span class="dv">2</span> <span class="dv">2</span>)))
+ (A <span class="dv">1</span> (A <span class="dv">1</span> (A <span class="dv">1</span> (A <span class="dv">2</span> <span class="dv">1</span>))))
+ (A <span class="dv">1</span> (A <span class="dv">1</span> (A <span class="dv">1</span> <span class="dv">2</span>)))
+ (A <span class="dv">1</span> (A <span class="dv">1</span> (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">1</span>))))
+ (A <span class="dv">1</span> (A <span class="dv">1</span> (A <span class="dv">0</span> <span class="dv">2</span>)))
+ (A <span class="dv">1</span> (A <span class="dv">1</span> <span class="dv">4</span>))
+ (A <span class="dv">1</span> (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">3</span>)))
+ (A <span class="dv">1</span> (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">2</span>))))
+ (A <span class="dv">1</span> (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">1</span>)))))
+ (A <span class="dv">1</span> (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">0</span> <span class="dv">2</span>))))
+ (A <span class="dv">1</span> (A <span class="dv">0</span> (A <span class="dv">0</span> <span class="dv">4</span>)))
+ (A <span class="dv">1</span> (A <span class="dv">0</span> <span class="dv">8</span>))
+ (A <span class="dv">1</span> <span class="dv">16</span>)
+ (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">15</span>))
+ (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">14</span>)))
+ (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">13</span>))))
+ (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">1</span> <span class="dv">12</span>)))))
+  <span class="co">;; ... we eventually obtain 1024 at the far end</span>
+  <span class="co">;; ... and then 'pop' the zeroes which multiply it by 2</span>
+  <span class="co">;; ...</span>
+ (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">0</span> <span class="dv">4096</span>))))
+ (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">0</span> <span class="dv">8192</span>)))
+ (A <span class="dv">0</span> (A <span class="dv">0</span> <span class="dv">16384</span>))
+ (A <span class="dv">0</span> <span class="dv">32768</span>) <span class="co">;; -&gt; 65536</span></code></pre>
+<p>Try entering numbers too large and your scheme interpreter will likely hang. This function produces enormous output with minimal input.</p>
+<p>The one nice thing, and you’ll have figured this out if you tried with paper, if that you can repeatedly perform subsitutions, treating expressions as their eventual results. Of course, you can do this with most any recursively-defined structure.</p>
+<p>It might help to imagine this process visually, or kinetically. Think of the process whittling down the <code>x</code> values, each <code>x</code> having a ‘petite-recursion’ whittling down <code>y</code> and ultimately obtaining an evaluation of <code>2</code> at the deepest depth of its recursion, yielding <code>(A 0 2)</code> as it begins to wind out of that depth. Now the function rapidly contracts, ‘popping’ the zeroes, doubling this large number for each accumulated <code>(A 0 ... )</code>. Our final evaluation will obviously be related to the number 2, because of the evaluation to <code>2</code> once <span class="math">\(y=1\)</span>.</p>
+<p>And because of the repeated doubling we can reasonably venture to guess that the final solution will somehow be 2 related to powers of 2 in some way.</p>
+<p>The exercise asks us to consider the following procedures:</p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-results="no"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(f n) (A <span class="dv">0</span> n))
+  (<span class="kw">define</span><span class="fu"> </span>(g n) (A <span class="dv">1</span> n))
+  (<span class="kw">define</span><span class="fu"> </span>(h n) (A <span class="dv">2</span> n))</code></pre>
+<p>How would we give a mathematical definition for these functions?</p>
+<p>Well, we know that <span class="math">\(f(n)\)</span> will always yield <span class="math">\(2n\)</span>. It simply refers to the base case, and no further proof is needed.</p>
+<p>Now, <span class="math">\(g(n) = A(1,n)\)</span>. For <span class="math">\(n=1\)</span>, <span class="math">\(g(1) = A(1,1) = 2\)</span>. Now we solve for any <span class="math">\(n\)</span>. <code>(A 1 n)</code> will evaluate the <code>else</code> branch of the conditional in <code>A</code>, so we have <code>(A (- 1 1) (A 1 (- n 1)))</code>.</p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-results="no"><code class="sourceCode scheme">  (A (<span class="kw">-</span> <span class="dv">1</span> <span class="dv">1</span>) (A <span class="dv">1</span> (<span class="kw">-</span> n <span class="dv">1</span>)))
+  (A <span class="dv">0</span> (A <span class="dv">1</span> (<span class="kw">-</span> n <span class="dv">1</span>)))
+  (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">1</span> (<span class="kw">-</span> n <span class="dv">2</span>))))
+  (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">0</span> (A <span class="dv">1</span> (<span class="kw">-</span> n <span class="dv">3</span>)))))
+  <span class="co">;; this continues until n reaches 1, and evaluates the expression to 2</span>
+  <span class="co">;; thus, 2 is multiplied by 2 n times</span></code></pre>
+<p>So following the evaluation above, <span class="math">\(g(n) = 2^{n}\)</span>.</p>
+<p>Now we examine <span class="math">\(h(n) = A(2,n)\)</span>. For <span class="math">\(n=1\)</span>, <span class="math">\(h(1) = A(2,1) = 4\)</span>, as derived earlier. Now we solve for any <span class="math">\(n\)</span>. Because <span class="math">\(h(n)\)</span> and <span class="math">\(g(n)\)</span> are both derived from <span class="math">\(A(x,y)\)</span>, it’s likely we can use substitution to find out how they are related.</p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (h n) <span class="co">;; for n &gt; 1</span>
+  (A <span class="dv">2</span> n)
+  (A <span class="dv">1</span> (A <span class="dv">2</span> (<span class="kw">-</span> n <span class="dv">1</span>)))
+  <span class="co">;; which is equivalent to</span>
+  (g (h (<span class="kw">-</span> n <span class="dv">1</span>)))
+  <span class="co">;; so the evaluation would be 2 to the (h (- n 1))</span>
+  <span class="co">;; we examine (h (- n 1))</span>
+  (g (g (h (<span class="kw">-</span> n <span class="dv">2</span>))))
+  (g (g (g (h (<span class="kw">-</span> n <span class="dv">3</span>)))))</code></pre>
+<p>So we see clearly that since <span class="math">\(h(n) = g(h(n-1))\)</span>, the ultimate expression would evaluate as <span class="math">\(g(n)\)</span> nested <span class="math">\(n\)</span> times, with the inner-most argument being 2: <span class="math">\(g(g(g(...g(2)))\)</span>. So 2 to the 2 to the 2 to the 2… This is called <strong>tetration</strong>, or iterated exponentiation (read more <a href="http://en.wikipedia.org/wiki/Tetration">here</a>). It is an operation with a faster rate of growth than exponentiation. It can be represented symbolically as such:</p>
+<p><span class="math">\[Tet(a, n) = {}^na =\underbrace{a^{a^{a^{\dots^{a}}}}}
+_{n \&gt; times}\]</span></p>
+<p>Similarly, <code>(A 3 n)</code> will be an operation with a greater rate of growth than tetration. And <code>(A 4 n)</code> even greater than that, and so on. Incomprehensibly fast rates of growth. For a bit of math humor involving very large numbers, check out <a href="http://en.wikipedia.org/wiki/Steinhaus%E2%80%93Moser_notation">Steinhaus-Moser notation</a>.</p>
+<p>At this point you might be realize, as I did, that SICP is partly a math book in disguise. Indeed, the first part of the book features heaps of problems focused on basic numerical analysis, as we’ll see soon with Fibonacci numbers and exponentiation. This is likely because it was expected that MIT students at the time, taking the original SICP course, would be both familiar with and interested in these sorts of problems. Unfortunately, it can turn off certain contemporary readers who might be more interested in “practical” problems and software development. SICP’s focus on numerical analysis, “domain knowledge”, and the abstract nature of computation was partly the impetus for Matthias Felleisen’s article <a href="http://www.ccs.neu.edu/racket/pubs/jfp2004-fffk.pdf">The Structure and Intepretation of the Computer Science Curriculum</a> and his book <em>How to Design Programs</em>.</p>
+<p>Essentialy, <em>programs are proofs</em>, and indeed, introductory books like SICP and Concrete Abstractions, that are grounded in building up your intuition for abstraction, ask you to do a bit of proof-writing to prove for correctness. So it pays to have a bit of math know-how in the pocket before approaching this material, especially in proof through induction. CA will teach you much of this from first principles– SICP mostly assumes that you are already familiar with it. This is one reason I’d always recommend CA over SICP for anyone unconfident in their mathematical sophistication. And of course, if the idea on your mind is “when am I ever going to use this”, from what I’ve heard HtDP is a great alternative to both.</p>
+<h3 id="fibonacci-numbers-and-tree-recursion">Fibonacci Numbers and Tree Recursion</h3>
+<p>Recall the definition of the Fibonacci sequence:</p>
+<p><span class="math">\[F(n) = \begin{cases} 0 &amp;\text{if } n = 0 \\
+                       1 &amp; \text{if } n = 1 \\
+    F(n-1) + F(n-2) &amp;\text{otherwise } \end{cases}\]</span> So: <span class="math">\(1,1,2,3,5,8,13,21,34,55,89,\dots\)</span></p>
+<p>A recursive process to find the $n$th Fibonacci number: <span id="fib_target"></span></p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(fibonacci n)
+    (<span class="kw">cond</span> ((<span class="kw">=</span> <span class="dv">1</span> n) <span class="dv">1</span>)
+          ((<span class="kw">=</span> <span class="dv">2</span> n) <span class="dv">1</span>)
+          (<span class="kw">else</span>
+            (<span class="kw">+</span> (fibonacci (<span class="kw">-</span> n <span class="dv">1</span>))
+               (fibonacci (<span class="kw">-</span> n <span class="dv">2</span>))))))
+  (fibonacci <span class="dv">8</span>)</code></pre>
+<p>And an linear iterative process (using a ‘named let’ construct):</p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(fibonacci n)
+    (<span class="kw">let</span> loop ((a <span class="dv">1</span>)(b <span class="dv">0</span>)(count n))
+      (<span class="kw">if</span> (<span class="kw">=</span> <span class="dv">0</span> count)
+          b
+          (loop (<span class="kw">+</span> a b) a (<span class="kw">-</span> count <span class="dv">1</span>)))))
+  (fibonacci <span class="dv">8</span>)</code></pre>
+<p>The recursive process is redundant, with a lot of needless computation, growing exponentially in size with <span class="math">\(n\)</span>.</p>
+<p>We recall that successive Fibonacci numbers approximate <span class="math">\(\varphi\)</span>. Particularly, <span class="math">\(F(n)\)</span> is the closet integer to <span class="math">\(\varphi^{n}/\sqrt{5}\)</span> <a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> and <span class="math">\(\varphi\)</span> has the characteristic equation <span class="math">\(\varphi^{2} = \varphi + 1\)</span>, which tells us concretely right at once that a process used to find Fibonacci numbers with recursive reference to their definition will exponentiate and perform a lot of needless computation.</p>
+<p>Tree-recursive processes are useful for hierarchical data, but not for numbers. Here, the iterative process introduces three state variables and resolves in far fewer steps.</p>
+<h4 id="counting-change">Counting Change</h4>
+<p>Here’s a simple program for computing the number of ways you can make change from a given amount of money. This program contains one procedure called <code>count-combos</code> that can be used to define other procedures. The <code>$-combos</code> function computes <code>count-combos</code> for a fixed units list, the currency denominations under a dollar.</p>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-exports="both"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(count-combos units amount)
+    (<span class="kw">cond</span> ((<span class="kw">&lt;</span> amount <span class="dv">0</span>) <span class="dv">0</span>)
+          ((<span class="kw">=</span> amount <span class="dv">0</span>) <span class="dv">1</span>)
+          ((<span class="kw">null?</span> units) <span class="dv">0</span>)
+          (<span class="kw">else</span> (<span class="kw">+</span> (count-combos units (<span class="kw">-</span> amount (<span class="kw">car</span> units)))
+                   (count-combos (<span class="kw">cdr</span> units) amount)))))
+
+  (<span class="kw">define</span><span class="fu"> </span>($-combos amount)
+   (count-combos '(<span class="dv">50</span> <span class="dv">25</span> <span class="dv">10</span> <span class="dv">5</span> <span class="dv">1</span>) amount))
+
+  ($-combos <span class="dv">100</span>)</code></pre>
+<pre class="example"><code>292</code></pre>
+<p>As they mention in the book, you solve this problem by recognizing that the ways of changing some amount <span class="math">\(a\)</span> using <span class="math">\(n\)</span> kinds of coins will be equal to - the number of ways to change <span class="math">\(a\)</span> will all but the first kind of coin - the number of ways to change <span class="math">\(a - c\)</span> using any all kinds of coins, for <span class="math">\(c\)</span> the first kind of coin</p>
+<p>This is mirrored in the program above. The main two recursive branches investigate these very two things, and each new branch generates two more branches. Particular branches that “don’t work” will yield negative amounts or will run out the coin list before the starting amount is exhausted (so they aren’t counted, and evaluate to 0). The combinations that do work will exhaust the amount to 0, and will evaluate to 1. All the branches explored contract under addition operations (which rest at the root of each pair of branches), adding up all the 1’s and 0’s to the final result.</p>
+<h4 id="exercise-1.12">Exercise 1.12</h4>
+<p>We are asked to write a procedure to compute elements of Pascal’s triangle by means of a recursive process. If you study any amount of integer-heavy math, you’ll be good friends with Pascal’s triangle.</p>
+<p>Explicitly, these elements (binomial coefficients) can be given by <span class="math">\[\frac{n!}{k!(n-k)!}\]</span> Translating that into a procedure would not be entirely ideal. Fair enough– any element of the triangle is given by the sum of the two elements above it. A brief sketch:</p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(PT-elem row col)
+    (<span class="kw">if</span> (<span class="kw">or</span> (<span class="kw">=</span> <span class="dv">0</span> col) (<span class="kw">=</span> col row))
+        <span class="dv">1</span>
+        (<span class="kw">+</span> (PT-elem (<span class="kw">-</span> row <span class="dv">1</span>) col)
+           (PT-elem (<span class="kw">-</span> row <span class="dv">1</span>) (<span class="kw">-</span> col <span class="dv">1</span>)))))</code></pre>
+<p>Mathematically, the above procedure makes use of the fact that <span class="math">\[{n \choose k} = {n-1 \choose k} + {n-1 \choose k-1}\]</span></p>
+<p>Another method we can use involves the following equality: <span class="math">\[{n \choose k} = \frac{n}{k}{n-1 \choose k-1}\]</span></p>
+<p>With this method, we can generate a linear recursive process. It will create a chain of multiplications of fractions with a length of <span class="math">\(k\)</span>– one base case will be <span class="math">\(k=1\)</span> which will give <span class="math">\(n\)</span>, the other base case will be <span class="math">\(n=k\)</span> which will give <span class="math">\(1\)</span>. Additionally, we can further optimize the program by checking to see if we can reduce the problem using the equality <span class="math">\[{n \choose k} = {n \choose k-1}\]</span></p>
+<p>We use a ‘named let’ construct for iterating, and give the program parameter names closer to our definitions to be consistent.</p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(choose n k)
+    (<span class="kw">if</span> (<span class="kw">&gt;</span> k n) <span class="dv">0</span>      <span class="co">;; only needs checked here</span>
+        (<span class="kw">let</span> loop ((n n) (k k) (product <span class="dv">1</span>))
+          (<span class="kw">cond</span> ((<span class="kw">=</span> n k) product)
+                ((<span class="kw">&gt;</span> k (<span class="kw">/</span> n <span class="dv">2</span>)) (loop n (<span class="kw">-</span> n k) product))
+                ((<span class="kw">=</span> k <span class="dv">1</span>) (* n product))
+                (<span class="kw">else</span> (loop (<span class="kw">-</span> n <span class="dv">1</span>)
+                            (<span class="kw">-</span> k <span class="dv">1</span>)
+                            (* (<span class="kw">/</span> n k) product)))))))</code></pre>
+<p>While this procedure required more code, it’s much more efficient and also validates input. Anticipating the next section, we compare the rates of growth for these procedures. I’ll use <span class="math">\(x\)</span> instead of the standard <span class="math">\(n\)</span> to avoid confusion in these notations. The first procedure, for large input, would have time complexity of <span class="math">\(\mathcal{O}(x)\)</span> but a space complexity of <span class="math">\(\mathcal{O}(x^{k})\)</span>, which would quickly get out of hand– and drawing a tree of the procedure will quickly show that there’s much redundant computation. But our new procedure has a time complexity of <span class="math">\(\mathcal{O}(x)\)</span> (the worst case is running <span class="math">\(k/2\)</span> or <span class="math">\(k\cdot \frac{1}{2}\)</span> evaluations (and <span class="math">\(\mathcal{O}(x) = \mathcal{O}(c\cdot x)\)</span>) and a space complexity of <span class="math">\(\mathcal{O}(1)\)</span>. Much better. We’ll discuss what these symbols mean soon.</p>
+<h4 id="exercise-1.13">Exercise 1.13</h4>
+<p>We prove that the $n$th Fibonacci number is the closest integer to <span class="math">\(\varphi^{n}/\sqrt{5}\)</span>. The text gives us a hint: recall that <span class="math">\(\varphi = 1+\sqrt{5}/2\)</span> and let <span class="math">\(\psi = (1 - \sqrt{5})/2\)</span>: use induction to prove that <span class="math">\(Fib(n) = (\varphi^{n}-\psi^{n})/\sqrt{5}\)</span>.</p>
+<p>Essentially, the book is using <span class="math">\(\psi\)</span> to represent <span class="math">\(-1/\varphi\)</span> (see my article on phi for derivations: <a href="http://armichael.github.io/posts/2015-03-12-Phi.html#fn1" class="uri">http://armichael.github.io/posts/2015-03-12-Phi.html#fn1</a>).</p>
+<p>We are set with the task of proving what is called the <em>Binet formula</em>: <span class="math">\[F(n) = \frac{1}{\sqrt{5}}\left[\varphi^{n}-\left(-\frac{1}{\varphi}\right)^{n
+}\right]\]</span></p>
+<p>Using the above definitions for <span class="math">\(\varphi\)</span> and <span class="math">\(\psi\)</span>, we note a few relationships:</p>
+<ul>
+<li><span class="math">\(\varphi\psi = 1\)</span></li>
+<li><span class="math">\(\varphi + \psi = 1\)</span></li>
+<li><span class="math">\(\varphi - \psi = \sqrt{5}\)</span></li>
+</ul>
+<p>We recall from the definition of Fibonacci numbers that <span class="math">\(F(0)=0\)</span> and <span class="math">\(F(1)=1\)</span>. We check that our formula holds for these base cases:</p>
+<p><span class="math">\[F(0) = \frac{1-1}{\sqrt{5}} = 0\]</span> <span class="math">\[F(1) = \frac{1+\sqrt{5}-(1-\sqrt{5})}{2\sqrt{5}} = 1\]</span></p>
+<p>Inductive hypothesis: we assume that the formula holds for <span class="math">\(F(n-1)\)</span> and <span class="math">\(F(n-2)\)</span>.</p>
+<p>So because <span class="math">\(F(n)=F(n-1)+F(n-2)\)</span>, we must show that where the Binet formula is denoted as <span class="math">\(B\)</span>, <span class="math">\[B(n) = \frac{\varphi^{n}-\psi^{n}}{\sqrt{5}} = B(n-1) + B(n-2)\]</span></p>
+<p>Following from the above, it will suffice to show that <span class="math">\(\varphi^{n} = \varphi^{n-1} + \varphi^{n-2}\)</span>, and likewise for <span class="math">\(\psi\)</span>. The rest of the proof is just straightforward algebra and I won’t include it here. You’ll find that the formula holds for all <span class="math">\(n\)</span>.</p>
+<h3 id="orders-of-growth">Orders of Growth</h3>
+<p>An order of growth is just a crude measure of how the resources required by a procedure will scale with input. “Resources” here can be construed in a few different ways, namely, the time that the procedure takes to execute (the number of mechanical operations), or the memory that the procedure consumes (occupation of storage registers).</p>
+<p>The book illustrates a formal definition in the following way: for one of these possible input parameters <span class="math">\(n\)</span>, we say <span class="math">\(R(n)\)</span> is a measure of <span class="math">\(n\)</span>’s resource consumption, for some resource (time, space, etc.). Now, <span class="math">\(R(n)\)</span> has order of growth <span class="math">\(\Theta (f(n ))\)</span> if there exist some positive constants <span class="math">\(c_{1}\)</span> and <span class="math">\(c_{2}\)</span> such that for large values of <span class="math">\(n\)</span>, <span class="math">\(c_{1}f(n) \leq R(n) \leq c_{2}f(n)\)</span>.</p>
+<p>So “Big Theta” of some function <span class="math">\(f(n)\)</span> is just a way of saying that input <span class="math">\(n\)</span> for a particular process scales to the resource consumption in such a way that the resource consumption will end up between two bounds– some constant multiples of <span class="math">\(f(n)\)</span>. Resources are considered to be time and space, and you’ll hear talk of the <em>time complexity</em> and <em>space complexity</em> of algorithms.</p>
+<p>As an aside from the text: what is the difference between <span class="math">\(\Theta\)</span> (Big Theta) and <span class="math">\(\mathcal{O}\)</span> (Big O) notation? Why is the latter seen more often informally?</p>
+<p>The answer is that big-theta is more specific. It gives an upper <em>and</em> lower bounds. Whereas big-O just provides an upper bounds, used often to answer the question “<em>how bad can it get?</em>”. Big-O denotes a bounds for the worst case– for large input <span class="math">\(n\)</span>, it won’t ever get worse than <strong>__</strong>. Confusingly, sometimes <span class="math">\(\mathcal{O}\)</span> is used for both.</p>
+<p>And just as big-O denotes an asymptotic upper bound, <span class="math">\(\Omega\)</span> or “Big Omega” denotes an asymptotic lower bound– a lower bounds of a procedure for the “ideal” case (to be careful with terms once again, <em>given sufficiently large input</em>).</p>
+<p>Here are some more examples to tease out the thinking behind the notations, taking into account time complexity:</p>
+<dl>
+<dt><span class="math">\(\mathcal{O}(1)\)</span></dt>
+<dd>an algorithm with a constant rate of growth. It will take the same amount of time to execute, regardless of the input. An example would be a procedure to access an array, or to check if a list is empty. This is a standard function in Scheme.
+</dd>
+</dl>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">null?</span> lst)</code></pre>
+<dl>
+<dt><span class="math">\(\mathcal{O}(n)\)</span></dt>
+<dd>an algorithm with a linear rate of growth. The time it takes to execute will grow in proportion to the input. An example would be a procedure that checks if an element is in a list.
+</dd>
+</dl>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(elem-in? elem lst)
+    (<span class="kw">cond</span> ((<span class="kw">null?</span> lst) <span class="dv">#f</span>)
+          ((<span class="kw">equal?</span> elem (<span class="kw">car</span> lst)) <span class="dv">#t</span>)
+          (<span class="kw">else</span> (elem-in? elem (<span class="kw">cdr</span> lst)))))</code></pre>
+<p>This procedure, in the worst case, cdr’s down the whole list (to find that the element is <em>not</em> present).</p>
+<dl>
+<dt><span class="math">\(\mathcal{O}(n^{2})\)</span></dt>
+<dd>an algorithm running in polynomial time, a faster rate of growth than <span class="math">\(\mathcal{O}(n)\)</span>. This order is commonly found when procedures involve nesting recursions or iterations. A good example here is a bubble sort, here implemented with vectors:
+</dd>
+</dl>
+<pre class="sourceCode scheme rundoc-block" rundoc-language="scheme" rundoc-results="no"><code class="sourceCode scheme">    (<span class="kw">define</span><span class="fu"> </span>(bubble-sort vec)
+      (<span class="kw">do</span> ((passes (<span class="kw">-</span> (<span class="kw">vector-length</span> vec) <span class="dv">1</span>)
+                        (<span class="kw">-</span> passes <span class="dv">1</span>)))
+          ((<span class="kw">=</span> passes <span class="dv">0</span>))
+        (<span class="kw">do</span> ((index <span class="dv">0</span> (<span class="kw">+</span> index <span class="dv">1</span>)))
+            ((<span class="kw">=</span> index (<span class="kw">-</span> (<span class="kw">vector-length</span> vec) <span class="dv">1</span>)))
+          (<span class="kw">if</span> (<span class="kw">&gt;</span> (<span class="kw">vector-ref</span> vec index)
+                 (<span class="kw">vector-ref</span> vec (<span class="kw">+</span> index <span class="dv">1</span>)))
+              (vector-swap! vec index (<span class="kw">+</span> index <span class="dv">1</span>)))))
+      vec)</code></pre>
+<p>Typically, a greater power of <span class="math">\(n\)</span> suggests a greater number of nested iterations.</p>
+<dl>
+<dt><span class="math">\(\mathcal{O}(2^{n})\)</span></dt>
+<dd><p>an algorithm that with an exponential rate of growth. It grows even faster than the above orders. The <span class="math">\(2\)</span> given here can be any constant <span class="math">\(c\)</span>. The <a href="#fib_target">naive recursive generation of Fibonacci numbers</a> is a good example of a procedure with this rate of growth, for <span class="math">\(c=\varphi\)</span>. That is to say, the procedure would take a time complexity of <span class="math">\(\mathcal{O}(\varphi^{n})\)</span> (it is, in fact, also <span class="math">\(\Theta(\varphi^{n})\)</span>). This can be intuited from examination of the Binet formula.</p>
+</dd>
+<dt><span class="math">\(\mathcal{O}(n\log n)\)</span></dt>
+<dd>an algorithm with time complexity of this order would scale to input in a pseudo-linear fashion (just slightly longer, with even smaller difference for large <span class="math">\(n\)</span>). This type of time complexity denotes a procedure running in <em>linearithmic time</em>, unless there is some exponent <span class="math">\(k\)</span> on the logarithm, in which case it is said to run <em>quasilinear time</em>. An example of this would be a merge sort (which also happens to be <span class="math">\(\Theta(n\log n))\)</span>).
+</dd>
+</dl>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(merge-sort lst)
+    (<span class="kw">cond</span> ((<span class="kw">null?</span> lst) lst) 
+          ((<span class="kw">null?</span> (<span class="kw">cdr</span> lst)) lst) 
+          (<span class="kw">else</span>
+           (merge (merge-sort (odd-part lst))
+                  (merge-sort (even-part lst))))))
+
+  (<span class="kw">define</span><span class="fu"> </span>(merge lst1 lst2)
+    (<span class="kw">cond</span> ((<span class="kw">null?</span> lst1) lst2) 
+          ((<span class="kw">null?</span> lst2) lst1) 
+          ((<span class="kw">&gt;</span> (<span class="kw">car</span> lst1) (<span class="kw">car</span> lst2))
+           (<span class="kw">cons</span> (<span class="kw">car</span> lst2) (merge lst1 (<span class="kw">cdr</span> lst2)) ))
+          (<span class="kw">else</span> (<span class="kw">cons</span> (<span class="kw">car</span> lst1) (merge (<span class="kw">cdr</span> lst1) lst2)))))
+
+  <span class="co">;; mutually recursive functions to divide up lists</span>
+  (<span class="kw">define</span><span class="fu"> </span>(odd-part lst)
+    (<span class="kw">if</span> (<span class="kw">null?</span>  lst)
+        '()
+        (<span class="kw">cons</span> (<span class="kw">car</span> lst) (even-part (<span class="kw">cdr</span> lst)))))
+  (<span class="kw">define</span><span class="fu"> </span>(even-part lst)
+    (<span class="kw">if</span> (<span class="kw">null?</span> lst)
+        '()
+        (odd-part (<span class="kw">cdr</span> lst))))</code></pre>
+<dl>
+<dt><span class="math">\(\mathcal{O}(\log n)\)</span></dt>
+<dd>an algorithm of this order has a logarithmic rate of growth. So, procedures of this order are faster in the worst case than procedures of <span class="math">\(\mathcal{O}(n)\)</span> (linear). An example of this order would be a procedure for insertion into a binary heap.
+</dd>
+</dl>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">    (<span class="kw">define</span><span class="fu"> </span>(insert tree x)
+      (<span class="kw">if</span> (empty-tree? tree)
+          (make-tree x '() '())
+          (<span class="kw">cond</span> ((<span class="kw">&gt;</span> x (root tree))
+                 (make-tree (root tree)
+                            (left-subtree tree)
+                            (insert (right-subtree tree) x)))
+                ((<span class="kw">&lt;</span> x (root tree))
+                 (make-tree (root tree)
+                            (insert (left-subtree tree) x)
+                            (right-subtree tree))))))
+  <span class="co">;; where</span>
+  (<span class="kw">define</span><span class="fu"> make-tree</span>
+    (<span class="kw">lambda</span> (root l-subtree r-subtree)
+      (<span class="kw">list</span> root l-subtree r-subtree)))
+  (<span class="kw">define</span><span class="fu"> empty-tree</span>? <span class="kw">null?</span>)
+  (<span class="kw">define</span><span class="fu"> root </span><span class="kw">car</span>)
+  (<span class="kw">define</span><span class="fu"> left-subtree </span><span class="kw">cadr</span>)
+  (<span class="kw">define</span><span class="fu"> right-subtree </span><span class="kw">caddr</span>)</code></pre>
+<p>Because they are simply aymptotic bounds, orders of growth only give a rough approximation of how we can expect a procedure to behave.</p>
+<h4 id="exercise-1.14">Exercise 1.14</h4>
+<p>We are asked to recall the change-counting function from earlier, and to determine its space and time complexity.</p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">    (<span class="kw">define</span><span class="fu"> </span>(count-combos units amount)
+      (<span class="kw">cond</span> ((<span class="kw">&lt;</span> amount <span class="dv">0</span>) <span class="dv">0</span>)
+            ((<span class="kw">=</span> amount <span class="dv">0</span>) <span class="dv">1</span>)
+            ((<span class="kw">null?</span> units) <span class="dv">0</span>)
+            (<span class="kw">else</span> (<span class="kw">+</span> (count-combos units (<span class="kw">-</span> amount (<span class="kw">car</span> units)))
+                     (count-combos (<span class="kw">cdr</span> units) amount)))))
+
+    (<span class="kw">define</span><span class="fu"> </span>($-combos amount)
+     (count-combos '(<span class="dv">50</span> <span class="dv">25</span> <span class="dv">10</span> <span class="dv">5</span> <span class="dv">1</span>) amount))
+
+    ($-combos <span class="dv">100</span>)</code></pre>
+<p>This procedure resembles a tree-structure in its evaluation (with the <code>+</code> operator as a root node and two recursive function calls as children of the node), so the number of steps for the procedure will be given by the height of the tree. We recall that the height of a binary tree such as this is given by <span class="math">\(2n-1\)</span>, so the number of steps (that is, the time-complexity) for the procedure will be <span class="math">\(\mathcal{O}(n)\)</span>.</p>
+<p>Now we find the space complexity. For a list of 0 denominations, and an amount <span class="math">\(n\)</span>, the program ends without recursion, so it would execute in memory of <span class="math">\(\mathcal{O}(1)\)</span>. For a list of 1 denomination, and an amount <span class="math">\(n\)</span>, we would have two recursions. One branch ends immediately (let this be the left branch), the other recurs again with <span class="math">\(n\)</span> minus the denomination (let this be the right branch). This continues, forming a tree of nodes with terminated left branches and a chain of branches on the right that continues so long as the repeated subtractions of the one denomination do not exhaust the amount. Assuming this single denomination is 1, the smallest possible amount, we have <span class="math">\(n\)</span> branchings, so the memory takes <span class="math">\(\mathcal{O}(n)\)</span>. For denominations larger than 1, we have fewer than <span class="math">\(n\)</span> branchings, so <span class="math">\(f(n) = \mathcal{O}(n)\)</span> still holds. For a list of 2 denominations, we have for the right branch a tree that ignores the first denomination, and so takes <span class="math">\(\mathcal{O}(n)\)</span> just as before, but we must also take into account the memory consumed by the left branch. The left branch will, far on one side, continually subtract the first denomination only until the amount is exhausted, which is <span class="math">\(\mathcal{O}(n)\)</span>. So far, we have <span class="math">\(\mathcal{O}(2n)\)</span>, which is the same as <span class="math">\(\mathcal{O}(n)\)</span>. However, <em>each</em> node after this operation will have a right branch that runs down the second denomination, and all of those will take <span class="math">\(\mathcal{O}(n)\)</span> using the same reasoning as above. So then we have <span class="math">\(\mathcal{O}(n^{2})\)</span>.</p>
+<p>If we extend this reasoning, we come to see that the memory of this procedure, scaling to input size, takes a polynomial order of time complexity <span class="math">\(\mathcal{O}(n^c)\)</span> where <span class="math">\(c\)</span> is the number of denominations to run through. In other words, it’s highly inefficient.</p>
+<h4 id="exercise-1.15">Exercise 1.15</h4>
+<p>This exercises concerns a procedure for numerical approximation. The sine of an angle can be approximated by taking into account the fact that <span class="math">\(sin x \equiv x\)</span> for sufficiently small <span class="math">\(x\)</span> (less than or equal to 0.1 radians), and the trigonometric identity <span class="math">\[sin x = 3 sin\frac{x}{3}-4sin^{3}\frac{x}{3}\]</span></p>
+<p>The book presents the following procedure:</p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(cube x) (* x x x))
+  (<span class="kw">define</span><span class="fu"> </span>(p x) (<span class="kw">-</span> (* <span class="dv">3</span> x) (* <span class="dv">4</span> (cube x))))
+  (<span class="kw">define</span><span class="fu"> </span>(sine <span class="kw">angle</span>)
+    (<span class="kw">if</span> (<span class="kw">not</span> (<span class="kw">&gt;</span> (<span class="kw">abs</span> <span class="kw">angle</span>) <span class="fl">0.1</span>))
+        <span class="kw">angle</span>
+        (p (sine (<span class="kw">/</span> <span class="kw">angle</span> <span class="fl">3.0</span>)))))</code></pre>
+<p>a. <em>How many times is the procedure <code>p</code> applied when <code>(sine 12.15)</code> is evaluated?</em></p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (sine <span class="fl">12.15</span>)
+  (p (sine <span class="fl">4.05</span>))
+  (p (p (sine <span class="fl">1.35</span>)))
+  (p (p (p (sine <span class="fl">0.45</span>))))
+  (p (p (p (p (sine <span class="fl">0.15</span>)))))
+  (p (p (p (p (p (sine <span class="fl">0.05</span>))))))
+  (p (p (p (p (p <span class="fl">0.05</span>)))))
+  <span class="co">;; ...</span></code></pre>
+<p><code>p</code> is applied 5 times.</p>
+<p>b. <em>What is the order of growth in space and number of steps (as a function of <strong>a</strong>) used by the process generated by the <code>sine</code> procedure when <code>(sine a)</code> is evaluated?</em></p>
+<p>This procedure is linear recursive, and so the space and steps required will both be related to the number of calls to <code>sine</code> that are required. This is directly dependent on how many times the input <code>a</code> can be divided by 3 until it is of a certain value– so we have the same number of <code>sine</code> calls until our input <code>a</code> triples in value. This indicates that our order of growth is precisely <span class="math">\(\Theta{(\log_{3}n)}\)</span>.</p>
+<h3 id="fast-exponentiation">Fast Exponentiation</h3>
+<p>A naive recursive approach to exponentiation, such as</p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(<span class="kw">expt</span> b n)
+    (<span class="kw">if</span> (<span class="kw">=</span> n <span class="dv">0</span>)
+        <span class="dv">1</span>
+        (* b (<span class="kw">expt</span> b (<span class="kw">-</span> n <span class="dv">1</span>)))))</code></pre>
+<p>Would, as a linear recursive process, require both <span class="math">\(\Theta(n)\)</span> steps and <span class="math">\(\Theta(n)\)</span> time.</p>
+<p>An iterative version, such as</p>
+<pre class="sourceCode scheme"><code class="sourceCode scheme">  (<span class="kw">define</span><span class="fu"> </span>(<span class="kw">expt</span> b n)
+    (expt-iter b n <span class="dv">1</span>))
+  (<span class="kw">define</span><span class="fu"> </span>(expt-iter b counter product)
+    (<span class="kw">if</span> (<span class="kw">=</span> counter <span class="dv">0</span>)
+        product
+        (expt-iter b
+                   (<span class="kw">-</span> counter <span class="dv">1</span>)
+                   (* b product))))</code></pre>
+<p>would require <span class="math">\(\Theta(n)\)</span> steps but only <span class="math">\(\Theta(1)\)</span> space.</p>
+<p>But we can make a procedure even more efficient by making use of the equalities <span class="math">\[\begin{align}b^{n} &amp;= (b^{n/2})^{2} &amp;\text{if n$ is even} \\
+b^{n} &amp;= b\cdot b^{n-1} &amp;\text{if $n$ is odd} \end{align}\]</span></p>
+<p>As we saw earlier with approximations of <span class="math">\(sine\)</span>, dramatically operating upon the procedure’s input (such through division) using equalities can dramatically reduce a procedure’s order of growth.</p>
+<h3 id="gcd">GCD</h3>
+<h3 id="primality">Primality</h3>
+<h2 id="higher-order-procedures">1.3 Higher-Order Procedures</h2>
+<h3 id="procedures-as-arguments">Procedures as Arguments</h3>
+<h3 id="lambda">Lambda</h3>
+<h3 id="general-methods">General Methods</h3>
+<h3 id="returned-values">Returned Values</h3>
+<h1 id="data-abstraction">Data Abstraction</h1>
+<h1 id="modularity-objects-and-state">Modularity, Objects, and State</h1>
+<h1 id="metalinguistic-abstraction">Metalinguistic Abstraction</h1>
+<h1 id="register-machines">Register Machines</h1>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p><code>{.example} SICP 2nd ed., page 49</code><a href="#fnref1">↩</a></p></li>
+</ol>
+</div>
+
+
+        </article>
+
+        <footer>
+<a href="#top" style="float:left;font-size:1.1em;"> Go to top</a>
+           &copy; Andrew Michael 2015
+        </footer>
+    </body>
+</html>

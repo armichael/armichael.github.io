@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	 <meta name="description" content="Digital art and mathematics">
+      <meta name="keywords" content="digital art, math, processing, complexity">
+      <meta name="author" content="Andrew Michael">
+	<link rel="shortcut icon" href="../favicon.ico" />
+        <title>Spielraum - Phi</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link href="http://fonts.googleapis.com/css?family=Noto+Sans:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=Merriweather" rel="stylesheet" type="text/css">
+<script src="http://use.edgefonts.net/source-code-pro.js"></script>
+	<!--[if lt IE 9]>
+	<script src="http://htmlshiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body>
+        <header><a id="top">
+            <div id="logo">
+                <a href="../">Spielraum</a>
+            </div>
+            <nav>
+                <a href="../about.html">about</a>
+                <a href="../contact.html">contact</a>
+                <a href="../archive.html">archive</a>
+            </nav>
+        </header>
+
+        <article>
+            <h1>Phi</h1>
+
+            <div id="by-line">
+  <span class="date">
+    Posted on March 22, 2015
+    
+        by Andrew Michael
+    </span>
+<span class="info">
+  
+  tags: <a href="../tags/math.html">math</a>
+  
+</span>
+</div>
+
+  <h2 id="basic-properties">Basic Properties</h2>
+<p>Phi, denoted <span class="math">\(\varphi\)</span>, can be represented as follows: <span class="math">\[\varphi - \frac{1}{\varphi} = 1\]</span> In other words, phi differs from its reciprocal by 1. It happens to be the only number for which this is true, which leads to some interesting behavior. For example, if <span class="math">\(\varphi = 1 + 1/\varphi\)</span>, we can substitute this identity wherever it occurs. So <span class="math">\[ 1 + \frac{1}{\varphi} = 1 + \cfrac{1}{1 + \cfrac{1}{\varphi}}\]</span> And you can continue this substitution for as long as you’d like. What this means is that <span class="math">\(\varphi\)</span> can be represented as an infinite continuing fraction: <span class="math">\[1+\cfrac{1}{1+\cfrac{1}{1+\cfrac{1}{1+\cfrac{1}{1+\cfrac{1}{\dots}}}}}\]</span></p>
+<p>All infinite continuing fractions are irrational, so this implies that <span class="math">\(\varphi\)</span> is irrational. Now, take the original identity from the first paragraph and multiply it by <span class="math">\(\varphi\)</span>, yielding <span class="math">\(\varphi^{2}- 1 = \varphi\)</span>. We rearrange terms and take the square root of both sides. Then, we once again perform substitutions given what we already know. <span class="math">\[\begin{align}\varphi &amp;= \sqrt{1 + \varphi}\\
+&amp;= \sqrt{1 + \sqrt{1 + \varphi}}\\
+&amp;= \sqrt{1 + \sqrt{1 + \sqrt{1 + \sqrt{\ldots }}}}\end{align}\]</span></p>
+<p>And we could similarly show that <span class="math">\[ \frac{1}{\varphi} = \sqrt{1 - \sqrt{1 - \sqrt{1 - \sqrt{\ldots}}}} \]</span></p>
+<p>Phi is commonly called the “golden ratio”. Geometrically, it is the ratio obtained between a shorter segment and a longer segment such that the shorter segment is related to the longer segment in the same way that the longer segment is related to the whole. Symbolically: <span class="math">\[\frac{L}{S} = \frac{L+S}{L} = 1 + \frac{S}{L}\]</span></p>
+<p>Displayed below, you will see what is referred to as a “golden rectangle”. Assume the first square has a side of <span class="math">\(1\)</span>, and that the golden rectangle is of dimensions <span class="math">\(1 \times 1\cdot\varphi\)</span>. Hover your mouse right and left to control the number of iterations. Each additional square drawn will take a side of <span class="math">\(1/\varphi^{n}\)</span>, where <span class="math">\(n\)</span> is the iteration. You will see many self-similar golden rectangles appear, and arcs of radius <span class="math">\(1/\varphi^{n}\)</span> will be drawn in each square, generating what is called a <a href="http://en.wikipedia.org/wiki/Logarithmic_spiral">logarithmic spiral</a>. Click and hold the mouse to hide the nested iterations.</p>
+<script src="processing-1.3.6.min.js"></script>
+<script src="../js/processing.min.js"></script>
+<canvas data-processing-sources="../sketches/goldenrectangle.pde">
+</canvas>
+<p>Once again, examine the equality <span class="math">\(\varphi = 1+ 1/\varphi\)</span>. Substitute <span class="math">\(x\)</span> for <span class="math">\(\varphi\)</span>, and we obtain <span class="math">\(x = 1 + 1/x\)</span>. Multiply this result by <span class="math">\(x\)</span>: <span class="math">\[x^{2} = x + 1\]</span> Hence, the characteristic equation for <span class="math">\(\varphi\)</span> is: <span class="math">\[x^{2} - x -1 = 0\]</span> We can solve this like any other quadratic function, noticing immediately that the function will have two real roots, given that the determinant (<span class="math">\(b^{2}-4ac\)</span>) is positive. Our roots will be given by: <span class="math">\[\frac{-(-1) \pm \sqrt{(-1)^2 - 4(1)(-1)}}{2(1)}\]</span> So on one hand we have <span class="math">\[\frac{1+\sqrt{5}}{2} = \varphi = 1.6180339\dots\]</span> and on the other hand we have <span class="math">\[\frac{1-\sqrt{5}}{2} = -\frac{1}{\varphi} = -0.6180339\dots\]</span> Similarly, we can instead substitute <span class="math">\(x\)</span> for <span class="math">\(1/\varphi\)</span>. In this case, our characteristic equation turns out to be slightly different. The equation <span class="math">\(\varphi - 1/\varphi = 1\)</span> becomes <span class="math">\(1/x - x = 1\)</span>, and once we multiply by <span class="math">\(x\)</span> and move terms, we obtain the equation <span class="math">\(x^{2} + x - 1\)</span>. The roots of this equation turn out to be <span class="math">\(-\varphi\)</span> and <span class="math">\(1/\varphi\)</span>. (For clarification on some of these results, see <a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> ).</p>
+<p>Now we prove that <span class="math">\(\varphi\)</span> is irrational. A loose sketch of a traditional proof might go as follows:</p>
+<ol style="list-style-type: decimal">
+<li>It suffices to show that <span class="math">\(\sqrt{5}\)</span> is irrational . . .</li>
+<li>Proof by contradiction: suppose not. Suppose <span class="math">\(\sqrt{5}\)</span> is rational so that by definition <span class="math">\(\sqrt{5} = p/q\)</span> for some <span class="math">\(p,q\in\mathbb{Z}\)</span>, assuming reduced form.</li>
+<li>. . .</li>
+<li>. . .</li>
+<li>. . .</li>
+<li>. . . Perform algebraic and definitional manipulation (<span class="math">\(a|b\)</span> means <span class="math">\(b = na\)</span> for some <span class="math">\(n\)</span>) until you induce contradiction by showing the fraction introduced in (2) was <em>not</em> in reduced form. The final step should yield <span class="math">\(5|q^{2}\)</span>.</li>
+</ol>
+<p>A more interesting and intuitive approach (full proof):</p>
+<ol style="list-style-type: decimal">
+<li>It suffices to show that <span class="math">\(\sqrt{5}\)</span> is irrational.</li>
+<li>Proof by contradiction: suppose not. Suppose <span class="math">\(\sqrt{5}\)</span> is rational. So by definition <span class="math">\(\sqrt{5} = p/q\)</span> for some <span class="math">\(p,q\in\mathbb{Z}\)</span>, assuming <span class="math">\(p/q\)</span> cannot be further reduced.</li>
+<li>Now square both sides and we have <span class="math">\(5 = p^{2}/q^{2}\)</span>.</li>
+<li>By the fundamental theorem of arithmetic, every integer is a product of prime numbers or is prime itself, and each integer has a unique prime factorization. Therefore, <span class="math">\(p\)</span> and <span class="math">\(q\)</span> each have unique prime factorizations such that without loss of generality, <span class="math">\(p = a_{1}a_{2}a_{3}\cdots a_{n}\)</span> for some <span class="math">\(n\)</span> number of primes <span class="math">\(a_{1},a_{2},\ldots,a_{n}\)</span>.</li>
+<li>So <span class="math">\(p^{2}\)</span> and <span class="math">\(q^{2}\)</span> will both be products of pairs of primes, because WLOG <span class="math">\(p\cdot p = (a_{1}a_{2}\cdots a_{n}) \cdot (a_{1}a_{2}\cdots a_{n}) = (a_{1}a_{1})\cdot(a_{2}a_{2})\cdots (a_{n}a_{n})\)</span>.</li>
+<li>Now we multiply the original equation by <span class="math">\(q^{2}\)</span> to obtain <span class="math">\(5q^{2} = p^{2}\)</span>. We see that one side will be a product of pairs of primes, whereas the other side will have one misfit prime, <span class="math">\(5\)</span>. So this equality is false, and therefore <span class="math">\(\sqrt{5}\)</span> is not rational. <span class="math">\(\square\)</span></li>
+</ol>
+<h2 id="phi-and-fibonacci-numbers">Phi and Fibonacci Numbers</h2>
+<p>We recall that <span class="math">\(\varphi^{2} = \varphi + 1\)</span>. In addition to phi being the only number that differs from its reciprocal by 1, it is also the only number that differs from its square by one. Now we see, following from this, that phi cubed will be given by <span class="math">\[\begin{align}\varphi^{3} &amp;= \varphi(\varphi^{2}) \\&amp;= \varphi(\varphi + 1) \\&amp;= \varphi^{2} + \varphi\\ &amp;= 2\varphi + 1\end{align}\]</span></p>
+<p>And we find <span class="math">\(\varphi^{4}\)</span>:</p>
+<p><span class="math">\[\begin{align}\varphi^{4} &amp;= \varphi(\varphi^{3})\\
+&amp;= \varphi(2\varphi + 1)\\
+&amp;= 2\varphi^{2} + \varphi\\
+&amp;= 2(\varphi + 1) + \varphi\\
+&amp;= 3\varphi + 2\end{align}\]</span></p>
+<p>Continuing on to higher powers, we will come to see that</p>
+<p><span class="math">\[\begin{align}\varphi^{2} &amp;= 1\varphi + 1\\
+\varphi^{3} &amp;= 2\varphi + 1\\
+\varphi^{4} &amp;= 3\varphi + 2\\
+\varphi^{5} &amp;= 5\varphi + 3\\
+\varphi^{6} &amp;= 8\varphi + 5\\
+\varphi^{7} &amp;= 13\varphi + 8\\
+\varphi^{8} &amp;= 21\varphi + 13\\
+\varphi^{9} &amp;= 34\varphi + 21\\
+\varphi^{10} &amp;= 55\varphi + 34\\
+\varphi^{11} &amp;= 89\varphi + 55\\
+etc.\end{align}\]</span></p>
+<p>Strangely enough, the natural numbers in these expressions are precisely the numbers of the Fibonacci sequence. We recall the definition of the Fibonacci sequence:</p>
+<p><span class="math">\[F(n) = \begin{cases} 0 &amp;\text{if } n = 0 \\
+                       1 &amp; \text{if } n = 1 \\
+					   F(n-1) + F(n-2) &amp;\text{otherwise } \end{cases}\]</span></p>
+<p>So we have 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, and so on. As well as this connection to power of phi, it can be shown that ratio of consecutive Fibonacci numbers comes increasingly close to phi as the sequence continues.</p>
+<p><span class="math">\[\begin{align}\frac{F_{2}}{F_{1}} &amp;= \frac{1}{1} = 1\\
+\frac{F_{3}}{F_{2}} &amp;= \frac{2}{1} = 2\\
+\frac{F_{4}}{F_{3}} &amp;= \frac{3}{2} = 1.5\\
+\frac{F_{5}}{F_{4}} &amp;= \frac{5}{3} = 1.\overline{6}\\
+\frac{F_{6}}{F_{5}} &amp;= \frac{8}{5} = 1.6\\
+\frac{F_{7}}{F_{6}} &amp;= \frac{13}{8} = 1.625\\
+\frac{F_{8}}{F_{7}} &amp;= \frac{21}{13} = 1.\overline{615384}\end{align}\]</span></p>
+<p>Why does this occur? The answer: any ratio of consecutive Fibonacci numbers can be given in the following way:</p>
+<p><span class="math">\[\frac{F_{n}}{F_{n-1}} = 1 + \cfrac{1}{\cfrac{F_{n-1}}{F_{n-2}}}\]</span></p>
+<p>Try this for yourself to see that it is correct. Now, examine this specific case:</p>
+<p><span class="math">\[\begin{align}\frac{F_{6}}{F_{5}} = \frac{8}{5} &amp;= 1+ \cfrac{1}{\cfrac{5}{3}}\\
+&amp;=1+\cfrac{1}{1+\cfrac{1}{\cfrac{3}{2}}}\\
+&amp;=1+\cfrac{1}{1+\cfrac{1}{1+ \cfrac{1}{\cfrac{2}{1}}}}\\
+&amp;=1+\cfrac{1}{1+\cfrac{1}{1+ \cfrac{1}{1+ \cfrac{1}{1}}}}\end{align}\]</span></p>
+<p>And as we established earlier, <span class="math">\(\varphi\)</span> is an infinite continuing fraction consisting of this very form. So any ratio of consecutive Fibonacci numbers will ultimately be equivalent to some part of this infinite continuing fraction, and the approximation comes closer and close to <span class="math">\(\varphi\)</span> as the sequence goes on. This fact is given explicitly by</p>
+<p><span class="math">\[\lim_{n\to\infty}\frac{F_{n}}{F_{n-1}} = \varphi\]</span></p>
+<p>And it can also be shown that</p>
+<p><span class="math">\[\lim_{n\to\infty}\frac{F_{n-1}}{F_{n}} = \frac{1}{\varphi}\]</span></p>
+<ul>
+<li>A question for the reader: is it possible that elements in <em>any</em> recursively defined sequence can approximate <span class="math">\(\varphi\)</span>? See <a href="http://www.maths.surrey.ac.uk/hosted-sites/R.Knott/Fibonacci/lucasNbs.html">here</a>.</li>
+</ul>
+<p>Phi and the Fibonacci sequence are both commonly observed in natural patterns. A fascinating example of a natural pattern related to these objects is phyllotaxis: the arrangment of leaves in plants. Particularly, spiral growth patterns, such as those most clearly seen in sunflowers.</p>
+<h2 id="phyllotaxis">Phyllotaxis</h2>
+Observe:
+<figure>
+<img src="../images/sunheadmod.png">
+<figcaption>
+Left image credited to <a href="https://www.flickr.com/photos/lucapost/694780262/">lucapost</a>, right image generated in <a href="http://processing.org">Processing</a>
+</figcaption>
+</figure>
+<p>On the left is an image of a sunflower head. On the right is an image generated from a computer program that simply draws circles with a position and size given according to a simple, fixed rule. The rule for forming these intriguing patterns is not at all complicated. The pattern in question is called <a href="http://en.wikipedia.org/wiki/Parastichy">parastichy</a>, and it appears because of the tendency of the human eye to connect near objects into continuous lines. We see <em>double</em> spirals in some of these arrangments because the objects they comprise have multiple “neighbors”. But what accounts for the specific manner in which these relationships between neighboring growths emerge? They occur when the divergence angle of the plant’s primordia involves, in some way, phi. Precisely, the “golden angle” is <span class="math">\(360 (1 - 1/\varphi) \approx 137.507 \text{ degrees}\)</span>.</p>
+<p>(in progress)</p>
+<h2 id="phi-and-fibonacci-numbers-in-progress">Phi and Fibonacci Numbers (in progress)</h2>
+<h2 id="most-irrational-number-in-progress">“Most irrational” number (in progress)</h2>
+<h2 id="phyllotaxis-in-progress">Phyllotaxis (in progress)</h2>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Derivation: We show that <span class="math">\(\frac{1-\sqrt{5}}{2} = - \frac{1}{\varphi}\)</span>. Recall that <span class="math">\(\frac{1}{\varphi} = \frac{2}{1+\sqrt{5}}\)</span>. First we show that <span class="math">\(\frac{2}{1+\sqrt{5}} = \frac{\sqrt{5}-1}{2}\)</span>. <span class="math">\[\frac{2}{1+\sqrt{5}} \cdot \frac{1-\sqrt{5}}{1-\sqrt{5}} = \frac{2(1-\sqrt{5})}{1-5} = \frac{2(1-\sqrt{5})}{-4}\]</span> <span class="math">\[= \frac{1-\sqrt{5}}{-2} = \frac{\sqrt{5}-1}{2} = \frac{\sqrt{5}+1}{2} - 1 = \varphi - 1 = \frac{1}{\varphi}\]</span> So this works. Now for the negative reciprocal: <span class="math">\[ -\frac{1}{\varphi} = -(\varphi - 1) = 1 - \varphi = 1 - \frac{\sqrt{5}+1}{2} = \frac{1-\sqrt{5}}{2} \square\]</span><a href="#fnref1">↩</a></p></li>
+</ol>
+</div>
+
+
+        </article>
+
+        <footer>
+<a href="#top" style="float:left;font-size:1.1em;"> Go to top</a>
+           &copy; Andrew Michael 2015
+        </footer>
+    </body>
+</html>
